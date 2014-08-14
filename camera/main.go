@@ -31,6 +31,10 @@ func main() {
 	httpPrefix = *flagPrefix
 	remote = *flagRemote
 
+	if err := os.Chdir(workDir); err != nil {
+		log.Fatalf("cannot cd to %q: %v", workDir, err)
+	}
+
 	//http.Handle("/", http.StripPrefix(*flagPrefix, http.HandlerFunc(index)))
 	http.HandleFunc("/", index)
 
@@ -160,6 +164,7 @@ func writeImage(w io.Writer, opts options) error {
 	cmd.Stderr = os.Stderr
 	cmd.Stdout = bw
 	if err := cmd.Run(); err != nil {
+		log.Printf("ERROR calling %s: %v", cmd.Args, err)
 		return err
 	}
 	return bw.Flush()
