@@ -40,6 +40,14 @@ func main() {
 
 func index(w http.ResponseWriter, r *http.Request) {
 	log.Printf("%s", r)
+	if strings.HasSuffix(r.URL.Path, ".jpg") {
+		i := strings.LastIndex(r.URL.Path, "/")
+		if i >= 0 {
+			http.ServeFile(w, r, filepath.Join(workDir, r.URL.Path[i+1:]))
+			return
+		}
+	}
+
 	q := r.URL.Query()
 	todo := q.Get("command")
 	if todo == "" {
@@ -87,7 +95,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 <html><head><meta http-equiv="refresh" content="60" /><title>Camera</title></head>
 <body>
 <p>`+message+`</p>
-<p><img src="`+httpPrefix+`/last.jpg" width="640" height="480" alt="last.jpg" /></p>
+<p><img src="`+httpPrefix+`last.jpg" width="640" height="480" alt="last.jpg" /></p>
 `)
 	dh, err := os.Open(workDir)
 	if err != nil {
@@ -107,7 +115,7 @@ func index(w http.ResponseWriter, r *http.Request) {
 				if j > 1000 {
 					os.Remove(filepath.Join(workDir, names[i]))
 				} else {
-					io.WriteString(w, "<li><a href=\""+httpPrefix+"/"+names[i]+"\">"+names[i]+"</a>\n")
+					io.WriteString(w, "<li><a href=\""+httpPrefix+names[i]+"\">"+names[i]+"</a>\n")
 				}
 				j++
 
