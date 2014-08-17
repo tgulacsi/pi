@@ -132,12 +132,20 @@ func index(w http.ResponseWriter, r *http.Request) {
 				}
 				names = names[:1000]
 			}
-			io.WriteString(w, "<ul>\n")
+			io.WriteString(w, "<ol>\n")
+			var old string
 			for i := len(names) - 1; i >= 0; i-- {
+				act := names[i][4:4+8]
+				if old == "" || old != act {
+					if old != "" {
+						io.WriteString(w, "</ol></li>\n")
+					}
+					io.WriteString(w, "<li>"+act[:4] + "-" + act[4:6]+"-"+act[6:]+"<ol>\n")
+					old = act
+				}
 				io.WriteString(w, "<li><a href=\""+httpPrefix+names[i]+"\">"+names[i]+"</a>\n")
-
 			}
-			io.WriteString(w, "</ul>\n")
+			io.WriteString(w, "</ol></li></ol>\n")
 		}
 	}
 	io.WriteString(w, `</body></html>`)
