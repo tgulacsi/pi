@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -110,18 +111,30 @@ func index(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			io.WriteString(w, "<pre>"+err.Error()+"</pre>")
 		} else {
-			io.WriteString(w, "<ul>\n")
-			j := 0
+			// filter ot non-img names
 			for i := len(names) - 1; i >= 0; i-- {
 				if !strings.HasPrefix(names[i], "img-") || !strings.HasSuffix(names[i], ".jpg") {
-					continue
+					switch i {
+					case len(names) - 1:
+						names = names[:i]
+					case 0:
+						names = names[1:]
+					default:
+						copy(names[i:], names[i+1:])
+						names = names[:len(names)-1]
+					}
 				}
-				if j > 1000 {
+			}
+			sort.Strings(names)
+			if len(names) > 1000 {
+				for i := len(names) - 1; i >= 1000; i-- {
 					os.Remove(filepath.Join(workDir, names[i]))
-				} else {
-					io.WriteString(w, "<li><a href=\""+httpPrefix+names[i]+"\">"+names[i]+"</a>\n")
 				}
-				j++
+				names = names[:1000]
+			}
+			io.WriteString(w, "<ul>\n")
+			for i := len(names) - 1; i >= 0; i-- {
+				io.WriteString(w, "<li><a href=\""+httpPrefix+names[i]+"\">"+names[i]+"</a>\n")
 
 			}
 			io.WriteString(w, "</ul>\n")
